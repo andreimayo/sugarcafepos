@@ -1,0 +1,29 @@
+# Enable rewrite engine
+RewriteEngine On
+
+# Redirect all requests to index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [QSA,L]
+
+# Set security headers
+Header set X-XSS-Protection "1; mode=block"
+Header set X-Frame-Options "SAMEORIGIN"
+Header set X-Content-Type-Options "nosniff"
+Header set Referrer-Policy "strict-origin-when-cross-origin"
+
+# Disable directory listing
+Options -Indexes
+
+# Prevent access to .htaccess file
+<Files .htaccess>
+Order allow,deny
+Deny from all
+</Files>
+
+# Prevent access to sensitive files
+<FilesMatch "^(config\.php|database\.php)$">
+Order allow,deny
+Deny from all
+</FilesMatch>
+
