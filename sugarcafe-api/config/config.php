@@ -3,10 +3,10 @@
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'sugarcafe_pos');
 define('DB_USER', 'root');
-define('DB_PASS', '');
+define('DB_PASS', 'sugarcafe');
 
 // API configuration
-define('API_BASE_PATH', '/api');
+define('API_BASE_PATH', '/sugarcafe-api');
 
 // Logging configuration
 define('LOG_FILE', __DIR__ . '/../logs/app.log');

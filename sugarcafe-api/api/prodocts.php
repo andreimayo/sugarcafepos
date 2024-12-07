@@ -1,10 +1,10 @@
 <?php
 
-require_once '../db.php';
-require_once '../utils/ApiResponse.php';
-require_once '../utils/Logger.php';
-require_once '../utils/InputValidator.php';
-require_once '../utils/Auth.php';
+require_once '/sugarcafe-api/config/Database.php';
+require_once '/sugarcafe-api/utils/ApiResponse.php';
+require_once '/sugarcafe-api/utils/logger.php';
+require_once '/sugarcafe-api/utils/InputValidator.php';
+require_once '/sugarcafe-api/api/auth.php';
 
 $logger = new Logger($db);
 $auth = new Auth($db);
@@ -117,4 +117,3 @@ switch ($method) {
 }
 
 ?>
-

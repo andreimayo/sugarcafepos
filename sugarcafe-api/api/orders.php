@@ -4,11 +4,11 @@ header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: POST, GET");
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
-require_once '../config/Database.php';
-require_once '../config/ApiResponse.php';
-require_once '../utils/Logger.php';
-require_once '../utils/InputValidator.php';
-require_once '../utils/Auth.php';
+require_once '/sugarcafe-api/config/Database.php';
+require_once '/sugarcafe-api/utils/ApiResponse.php';
+require_once '/sugarcafe-api/utils/logger.php';
+require_once '/sugarcafe-api/utils/InputValidator.php';
+require_once '/sugarcafe-api/api/auth.php';
 
 $database = new Database();
 $db = $database->getConnection();
@@ -101,4 +101,3 @@ switch($method) {
         break;
 }
 ?>
-
