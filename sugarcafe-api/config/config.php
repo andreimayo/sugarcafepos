@@ -17,7 +17,7 @@ define('JWT_SECRET', 'your_jwt_secret_key_here');
 define('JWT_EXPIRATION', 3600); // 1 hour
 
 // CORS configuration
-define('ALLOWED_ORIGINS', ['http://localhost:3000', 'https://yourdomain.com']);
+define('ALLOWED_ORIGINS', ['http://localhost:5173', 'https://yourdomain.com']);
 
 // Error reporting
 ini_set('display_errors', 0);
