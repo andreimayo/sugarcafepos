@@ -155,7 +155,7 @@
   }
 
   .sidebar button {
-    background-color: #b89f87;
+    background-color: #f8e8d4;
     color: #ffffff;
     border-radius: 0.5rem;
     padding: 0.75rem 1.5rem;
@@ -164,7 +164,7 @@
   }
 
   .sidebar button:hover {
-    background-color: #a88b6f;
+    background-color: #a88b6f; /* Darker muted brown */
   }
 </style>
 
