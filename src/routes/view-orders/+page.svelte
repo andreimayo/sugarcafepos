@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
+
   interface OrderItem {
     id: number;
     name: string;
@@ -14,54 +16,107 @@
     totalSales: number;
   }
 
-  // Example orders for testing
-  let orders: OrderItem[] = [
-    { id: 1, name: 'Salted Caramel', size: 'Medium', sizePrice: 39, quantity: 2, totalPrice: 78 },
-    { id: 2, name: 'Spanish Latte', size: 'Large', sizePrice: 49, quantity: 1, totalPrice: 49 },
-  ];
-
-  // Array to store completed orders for the Sales Report
+  let orders: OrderItem[] = [];
   let salesReport: SalesReport[] = [];
 
-  // Function to calculate the total sales of the completed orders
+  onMount(async () => {
+    await fetchOrders();
+    await fetchSalesReport();
+  });
+
+  async function fetchOrders() {
+    try {
+      const response = await fetch('/api/orders/active.php');
+      if (response.ok) {
+        orders = await response.json();
+      } else {
+        console.error('Failed to fetch orders');
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    }
+  }
+
+  async function fetchSalesReport() {
+    try {
+      const response = await fetch('/api/reports/sales.php');
+      if (response.ok) {
+        salesReport = await response.json();
+      } else {
+        console.error('Failed to fetch sales report');
+      }
+    } catch (error) {
+      console.error('Error fetching sales report:', error);
+    }
+  }
+
   function calculateTotalSales(orders: OrderItem[]): number {
     return orders.reduce((total, order) => total + order.totalPrice, 0);
   }
 
-  function editOrder(order: OrderItem) {
+  async function editOrder(order: OrderItem) {
+    // Implement edit functionality
     alert(`Edit order: ${order.name}`);
   }
 
-  function deleteOrder(order: OrderItem) {
-    orders = orders.filter(o => o !== order);
+  async function deleteOrder(order: OrderItem) {
+    try {
+      const response = await fetch(`/api/orders/delete.php/${order.id}`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        orders = orders.filter(o => o !== order);
+      } else {
+        console.error('Failed to delete order');
+      }
+    } catch (error) {
+      console.error('Error deleting order:', error);
+    }
   }
 
-  function completeOrder(order: OrderItem) {
-    // Move the order to salesReport
-    salesReport = [...salesReport, {
-      date: new Date().toLocaleDateString(),  // Current date
-      orders: [order],
-      totalSales: order.totalPrice
-    }];
-    
-    // Remove the order from the current orders list
-    orders = orders.filter(o => o !== order);
+  async function completeOrder(order: OrderItem) {
+    try {
+      const response = await fetch(`/api/orders/complete.php/${order.id}`, {
+        method: 'POST',
+      });
+      if (response.ok) {
+        orders = orders.filter(o => o !== order);
+        await fetchSalesReport();
+      } else {
+        console.error('Failed to complete order');
+      }
+    } catch (error) {
+      console.error('Error completing order:', error);
+    }
   }
 
-  function submitSalesReport() {
+  async function submitSalesReport() {
     if (salesReport.length === 0) {
       alert('No completed orders to submit.');
       return;
     }
 
-    // Log or submit sales report
-    const report = {
-      date: new Date().toLocaleDateString(),
-      totalSales: calculateTotalSales(salesReport.flatMap(report => report.orders)),
-    };
+    try {
+      const response = await fetch('/api/reports/submit.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          date: new Date().toLocaleDateString(),
+          totalSales: calculateTotalSales(salesReport.flatMap(report => report.orders)),
+        }),
+      });
 
-    console.log('Sales Report Submitted:', report);
-    alert('Sales report submitted successfully.');
+      if (response.ok) {
+        alert('Sales report submitted successfully.');
+        await fetchSalesReport();
+      } else {
+        console.error('Failed to submit sales report');
+      }
+    } catch (error) {
+      console.error('Error submitting sales report:', error);
+    }
   }
 </script>
 

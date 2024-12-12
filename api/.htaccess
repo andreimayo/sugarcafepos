@@ -1,0 +1,58 @@
+# Enable rewrite engine
+RewriteEngine On
+
+# Prevent directory listing
+Options -Indexes
+
+# Prevent access to .htaccess file
+<Files .htaccess>
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Prevent access to sensitive files
+<FilesMatch "^(config\.php|database\.php)">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Force HTTPS (uncomment these lines if you have SSL certificate)
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Clean URLs for API endpoints
+RewriteRule ^api/login$ api/login.php [L]
+RewriteRule ^api/admin/change-password$ api/admin/change-password.php [L]
+RewriteRule ^api/cashier/change-password$ api/cashier/change-password.php [L]
+RewriteRule ^api/inventory/create$ api/inventory/create.php [L]
+RewriteRule ^api/inventory/read$ api/inventory/read.php [L]
+RewriteRule ^api/inventory/update$ api/inventory/update.php [L]
+RewriteRule ^api/inventory/delete$ api/inventory/delete.php [L]
+RewriteRule ^api/reports/sales$ api/reports/sales.php [L]
+RewriteRule ^api/reports/submit$ api/reports/submit.php [L]
+
+# Redirect all other requests to index.php (for SPA routing)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [L,QSA]
+
+# Set security headers
+<IfModule mod_headers.c>
+    Header set X-XSS-Protection "1; mode=block"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-Content-Type-Options "nosniff"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:;"
+</IfModule>
+
+# PHP settings
+php_flag display_errors off
+php_value max_execution_time 30
+php_value max_input_time 60
+php_value max_input_vars 1000
+php_value memory_limit 128M
+php_value post_max_size 8M
+php_value upload_max_filesize 2M
+php_flag session.cookie_httponly on
+php_flag session.use_only_cookies on
+php_flag session.use_strict_mode on

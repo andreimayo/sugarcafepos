@@ -1,20 +1,47 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
+
   interface SalesReport {
     date: string; // Format: YYYY-MM-DD
     totalSales: number;
   }
 
-  let salesReports: SalesReport[] = [
-    { date: '2024-11-19', totalSales: 2000.0 },
-    { date: '2024-11-18', totalSales: 1500.5 },
-    { date: '2024-11-15', totalSales: 1800.75 },
-    { date: '2024-11-10', totalSales: 2200.0 },
-    { date: '2024-10-25', totalSales: 3000.0 },
-  ];
+  let salesReports: SalesReport[] = [];
 
   let weekStartDate: string = '';
   let weekEndDate: string = '';
   let selectedMonth: string = '';
+
+  onMount(async () => {
+    await fetchSalesReports();
+  });
+
+  $: {
+    if (weekStartDate && weekEndDate || selectedMonth) {
+      fetchSalesReports();
+    }
+  }
+
+  async function fetchSalesReports() {
+    try {
+      let url = './api/reports/sales.php';
+      if (weekStartDate && weekEndDate) {
+        url += `?start_date=${weekStartDate}&end_date=${weekEndDate}`;
+      } else if (selectedMonth) {
+        url += `?month=${selectedMonth}`;
+      }
+
+      const response = await fetch(url);
+      if (response.ok) {
+        const data = await response.json();
+        salesReports = data.daily_report;
+      } else {
+        console.error('Failed to fetch sales reports');
+      }
+    } catch (error) {
+      console.error('Error fetching sales reports:', error);
+    }
+  }
 
   function logout() {
     window.location.href = '/login';
@@ -37,22 +64,7 @@
     });
   }
 
-  $: filteredSales = salesReports.filter((report) => {
-    if (weekStartDate && weekEndDate) {
-      const start = new Date(weekStartDate);
-      const end = new Date(weekEndDate);
-      const reportDate = new Date(report.date);
-      return reportDate >= start && reportDate <= end;
-    } else if (selectedMonth) {
-      const [year, month] = selectedMonth.split('-').map(Number);
-      const reportDate = new Date(report.date);
-      return (
-        reportDate.getFullYear() === year &&
-        reportDate.getMonth() + 1 === month
-      );
-    }
-    return true;
-  });
+  $: filteredSales = salesReports;
 
   $: totalFilteredSales = filteredSales.reduce(
     (total, report) => total + report.totalSales,
@@ -148,7 +160,6 @@
   .sidebar button:hover {
     background-color: #a88b6f; /* Darker muted brown */
   }
-
 
   .card {
     background-color: #ffffff; /* White for cards */
@@ -272,8 +283,8 @@
           <input type="date" bind:value={weekEndDate} />
         </div>
       </div>
-        <!-- svelte-ignore a11y_label_has_associated_control -->
       <div class="form-group">
+        <!-- svelte-ignore a11y_label_has_associated_control -->
         <label class="text-secondary">Select Month</label>
         <input type="month" bind:value={selectedMonth} />
       </div>
@@ -366,4 +377,3 @@
     </div>
   </section>
 </main>
-

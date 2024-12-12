@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
+
   interface InventoryItem {
     id: number;
     name: string;
@@ -6,20 +8,50 @@
     price: number;
   }
 
-  let inventory: InventoryItem[] = [
-
-  ];
+  let inventory: InventoryItem[] = [];
 
   let newItem: InventoryItem = { id: 0, name: '', quantity: 0, price: 0 };
   let editingMode = false;
   let currentItem: InventoryItem = { ...newItem };
 
+  onMount(async () => {
+    await fetchInventory();
+  });
+
+  async function fetchInventory() {
+    try {
+      const response = await fetch('/api/inventory/read.php');
+      if (response.ok) {
+        inventory = await response.json();
+      } else {
+        console.error('Failed to fetch inventory');
+      }
+    } catch (error) {
+      console.error('Error fetching inventory:', error);
+    }
+  }
+
   // Add a new item
-  function addItem() {
+  async function addItem() {
     if (currentItem.name && currentItem.quantity > 0 && currentItem.price > 0) {
-      currentItem.id = inventory.length + 1;
-      inventory = [...inventory, { ...currentItem }];
-      resetForm();
+      try {
+        const response = await fetch('/api/inventory/create.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(currentItem),
+        });
+
+        if (response.ok) {
+          await fetchInventory();
+          resetForm();
+        } else {
+          console.error('Failed to add item');
+        }
+      } catch (error) {
+        console.error('Error adding item:', error);
+      }
     } else {
       alert('All fields are required.');
     }
@@ -32,17 +64,46 @@
   }
 
   // Save the edited item
-  function saveItem() {
-    const index = inventory.findIndex((item) => item.id === currentItem.id);
-    if (index !== -1) {
-      inventory[index] = { ...currentItem };
-      resetForm();
+  async function saveItem() {
+    try {
+      const response = await fetch('/api/inventory/update.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(currentItem),
+      });
+
+      if (response.ok) {
+        await fetchInventory();
+        resetForm();
+      } else {
+        console.error('Failed to update item');
+      }
+    } catch (error) {
+      console.error('Error updating item:', error);
     }
   }
 
   // Delete an item
-  function deleteItem(item: InventoryItem) {
-    inventory = inventory.filter((i) => i.id !== item.id);
+  async function deleteItem(item: InventoryItem) {
+    try {
+      const response = await fetch('/api/inventory/delete.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: item.id }),
+      });
+
+      if (response.ok) {
+        await fetchInventory();
+      } else {
+        console.error('Failed to delete item');
+      }
+    } catch (error) {
+      console.error('Error deleting item:', error);
+    }
   }
 
   // Reset the form
@@ -193,9 +254,8 @@
         <label>Item Name</label>
         <input type="text" bind:value={currentItem.name} placeholder="Enter item name" />
       </div>
-      <!-- svelte-ignore a11y_label_has_associated_control -->
-        <!-- svelte-ignore a11y_label_has_associated_control -->
       <div class="form-group">
+        <!-- svelte-ignore a11y_label_has_associated_control -->
         <label>Quantity</label>
         <input type="number" bind:value={currentItem.quantity} placeholder="Enter quantity" />
       </div>

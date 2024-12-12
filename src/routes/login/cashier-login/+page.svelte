@@ -1,23 +1,92 @@
 <script>
+    import { onMount } from 'svelte';
+
     let password = '';
     let error = '';
+    let showChangePassword = false;
+    let currentPassword = '';
+    let newPassword = '';
+    let confirmPassword = '';
 
-    const login = () => {
+    onMount(() => {
+        // Check if user is already logged in
+        const token = localStorage.getItem('cashierToken');
+        if (token) {
+            window.location.href = '/dashboard/cashier-dashboard';
+        }
+    });
+
+    const login = async () => {
         if (password === '') {
             error = 'Password is required!';
             return;
         }
 
-        if (password === 'sugarcafe') {
-            error = ''; // Clear error on successful login
-            window.location.href = '/dashboard/cashier-dashboard'; // Redirect to cashier dashboard
-        } else {
-            error = 'Incorrect password. Please try again.';
+        try {
+            const response = await fetch('/api/cashier/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ password }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                error = ''; // Clear error on successful login
+                localStorage.setItem('cashierToken', data.token);
+                window.location.href = '/dashboard/cashier-dashboard';
+            } else {
+                error = data.message || 'Incorrect password. Please try again.';
+            }
+        } catch (err) {
+            console.error('Login error:', err);
+            error = 'An error occurred. Please try again.';
+        }
+    };
+
+    const changePassword = async () => {
+        if (currentPassword === '' || newPassword === '' || confirmPassword === '') {
+            error = 'All fields are required!';
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            error = 'New passwords do not match!';
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/cashier/change-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('cashierToken')}`,
+                },
+                body: JSON.stringify({ currentPassword, newPassword }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                error = '';
+                alert('Password changed successfully!');
+                showChangePassword = false;
+                currentPassword = '';
+                newPassword = '';
+                confirmPassword = '';
+            } else {
+                error = data.message || 'Failed to change password. Please try again.';
+            }
+        } catch (err) {
+            console.error('Change password error:', err);
+            error = 'An error occurred. Please try again.';
         }
     };
 
     const goBack = () => {
-        window.location.href = '/login'; // Navigate back to login route
+        window.location.href = '/login';
     };
 </script>
 
@@ -42,27 +111,83 @@
         
         <h1 class="text-3xl font-bold text-center text-brown-700 mb-6">Cashier</h1>
         
-        <form on:submit|preventDefault={login}>
-            {#if error}
-                <p class="text-red-500 text-sm mb-4">{error}</p>
-            {/if}
-            <div class="mb-4">
-                <label class="block text-brown-600 text-sm font-bold mb-2" for="password">Password</label>
-                <input
-                    class="w-full px-3 py-2 text-brown-800 bg-brown-100 border border-brown-300 rounded-lg focus:outline-none focus:border-brown-500"
-                    type="password"
-                    id="password"
-                    bind:value={password}
-                    placeholder="Enter password"
-                />
-            </div>
+        {#if !showChangePassword}
+            <form on:submit|preventDefault={login}>
+                {#if error}
+                    <p class="text-red-500 text-sm mb-4">{error}</p>
+                {/if}
+                <div class="mb-4">
+                    <label class="block text-brown-600 text-sm font-bold mb-2" for="password">Password</label>
+                    <input
+                        class="w-full px-3 py-2 text-brown-800 bg-brown-100 border border-brown-300 rounded-lg focus:outline-none focus:border-brown-500"
+                        type="password"
+                        id="password"
+                        bind:value={password}
+                        placeholder="Enter password"
+                    />
+                </div>
+                <button
+                    class="w-full bg-brown-600 text-white py-2 rounded-lg font-semibold hover:bg-brown-700 transition duration-300 shadow-md"
+                    type="submit"
+                >
+                    Login
+                </button>
+            </form>
             <button
-                class="w-full bg-brown-600 text-white py-2 rounded-lg font-semibold hover:bg-brown-700 transition duration-300 shadow-md"
-                type="submit"
+                class="w-full mt-4 bg-brown-200 text-brown-700 py-2 rounded-lg font-semibold hover:bg-brown-300 transition duration-300 shadow-md"
+                on:click={() => showChangePassword = true}
             >
-                Login
+                Change Password
             </button>
-        </form>
+        {:else}
+            <form on:submit|preventDefault={changePassword}>
+                {#if error}
+                    <p class="text-red-500 text-sm mb-4">{error}</p>
+                {/if}
+                <div class="mb-4">
+                    <label class="block text-brown-600 text-sm font-bold mb-2" for="currentPassword">Current Password</label>
+                    <input
+                        class="w-full px-3 py-2 text-brown-800 bg-brown-100 border border-brown-300 rounded-lg focus:outline-none focus:border-brown-500"
+                        type="password"
+                        id="currentPassword"
+                        bind:value={currentPassword}
+                        placeholder="Enter current password"
+                    />
+                </div>
+                <div class="mb-4">
+                    <label class="block text-brown-600 text-sm font-bold mb-2" for="newPassword">New Password</label>
+                    <input
+                        class="w-full px-3 py-2 text-brown-800 bg-brown-100 border border-brown-300 rounded-lg focus:outline-none focus:border-brown-500"
+                        type="password"
+                        id="newPassword"
+                        bind:value={newPassword}
+                        placeholder="Enter new password"
+                    />
+                </div>
+                <div class="mb-4">
+                    <label class="block text-brown-600 text-sm font-bold mb-2" for="confirmPassword">Confirm New Password</label>
+                    <input
+                        class="w-full px-3 py-2 text-brown-800 bg-brown-100 border border-brown-300 rounded-lg focus:outline-none focus:border-brown-500"
+                        type="password"
+                        id="confirmPassword"
+                        bind:value={confirmPassword}
+                        placeholder="Confirm new password"
+                    />
+                </div>
+                <button
+                    class="w-full bg-brown-600 text-white py-2 rounded-lg font-semibold hover:bg-brown-700 transition duration-300 shadow-md"
+                    type="submit"
+                >
+                    Change Password
+                </button>
+            </form>
+            <button
+                class="w-full mt-4 bg-brown-200 text-brown-700 py-2 rounded-lg font-semibold hover:bg-brown-300 transition duration-300 shadow-md"
+                on:click={() => showChangePassword = false}
+            >
+                Back to Login
+            </button>
+        {/if}
     </div>
 </main>
 
@@ -111,4 +236,13 @@
     .hover\:bg-brown-200:hover {
         background-color: #f5d5c9;
     }
+
+    .bg-brown-200 {
+        background-color: #f5d5c9;
+    }
+
+    .hover\:bg-brown-300:hover {
+        background-color: #e8c5b5;
+    }
 </style>
+
