@@ -1,7 +1,7 @@
 <?php
 class Database {
     private $host = "localhost";
-    private $db_name = "sugarcafe_pos";
+    private $db_name = "sugar_cafe_pos";
     private $username = "root";
     private $password = "";
     public $conn;

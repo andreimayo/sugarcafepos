@@ -23,7 +23,7 @@
         }
 
         try {
-            const response = await fetch('/api/admin/login', {
+            const response = await fetch('/api/admin/login.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -58,7 +58,7 @@
         }
 
         try {
-            const response = await fetch('/api/admin/change-password', {
+            const response = await fetch('/api/admin/change-password.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
