@@ -1,18 +1,95 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-
   interface SalesReport {
     date: string; // Format: YYYY-MM-DD
     totalSales: number;
   }
 
-  let salesReports: SalesReport[] = [];
+  let salesReports: SalesReport[] = [
+    { date: '2024-11-19', totalSales: 2000.0 },
+    { date: '2024-11-18', totalSales: 1500.5 },
+    { date: '2024-11-15', totalSales: 1800.75 },
+    { date: '2024-11-10', totalSales: 2200.0 },
+    { date: '2024-10-25', totalSales: 3000.0 },
+  ];
 
   let weekStartDate: string = '';
   let weekEndDate: string = '';
   let selectedMonth: string = '';
 
+  function logout() {
+    window.location.href = '/login';
+  }
 
+  function formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  }
+
+  function formatShortDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      month: 'short',
+      day: 'numeric'
+    });
+  }
+
+  $: filteredSales = salesReports.filter((report) => {
+    if (weekStartDate && weekEndDate) {
+      const start = new Date(weekStartDate);
+      const end = new Date(weekEndDate);
+      const reportDate = new Date(report.date);
+      return reportDate >= start && reportDate <= end;
+    } else if (selectedMonth) {
+      const [year, month] = selectedMonth.split('-').map(Number);
+      const reportDate = new Date(report.date);
+      return (
+        reportDate.getFullYear() === year &&
+        reportDate.getMonth() + 1 === month
+      );
+    }
+    return true;
+  });
+
+  $: totalFilteredSales = filteredSales.reduce(
+    (total, report) => total + report.totalSales,
+    0
+  );
+
+  $: averageDailySales = filteredSales.length > 0
+    ? totalFilteredSales / filteredSales.length
+    : 0;
+
+  $: highestSalesDay = filteredSales.reduce(
+    (max, report) => (report.totalSales > max.totalSales ? report : max),
+    { date: '', totalSales: 0 }
+  );
+
+  $: lowestSalesDay = filteredSales.reduce(
+    (min, report) => (report.totalSales < min.totalSales ? report : min),
+    { date: '', totalSales: Infinity }
+  );
+
+  $: salesTrend = filteredSales.length > 1
+    ? (filteredSales[filteredSales.length - 1].totalSales - filteredSales[0].totalSales) /
+      (filteredSales.length - 1)
+    : 0;
+
+  $: maxSales = Math.max(...filteredSales.map(report => report.totalSales));
+  $: minSales = Math.min(...filteredSales.map(report => report.totalSales));
+
+  $: sortedSales = [...filteredSales].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  function getBarHeight(sales: number, maxHeight: number): number {
+    return (sales / maxSales) * maxHeight;
+  }
+
+  function getYAxisLabels(maxSales: number): number[] {
+    const step = maxSales / 4;
+    return [0, step, step * 2, step * 3, maxSales];
   }
 </script>
 
@@ -69,7 +146,7 @@
   }
 
   .sidebar button:hover {
-    background-color: #a88b6f; /* Darker muted brown */
+    background-color: #a88b6f; /* Darker muted brown on hover */
   }
 
   .card {
@@ -288,3 +365,4 @@
     </div>
   </section>
 </main>
+

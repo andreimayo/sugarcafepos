@@ -1,4 +1,5 @@
 <script lang="ts">
+  // Existing TypeScript code remains unchanged
   interface MenuItem {
     id: number;
     name: string;
@@ -14,69 +15,68 @@
   }
 
   const menuItems: MenuItem[] = [
-  { id: 1, name: 'Salted Caramel', price: 39, img: '/icedcoffee/saltedcaramel.png', category: 'Coffee' },
-  { id: 1, name: 'Spanish Latte', price: 39, img: '/icedcoffee/spanishlatte.png', category: 'Coffee' },
-  { id: 1, name: 'Hazelnut', price: 39, img: '/icedcoffee/hazelnut.png', category: 'Coffee' },
-  { id: 1, name: 'French Vanilla', price: 39, img: '/icedcoffee/frenchvanilla.png', category: 'Coffee' },
-  { id: 1, name: 'Iced Americano', price: 39, img: '/icedcoffee/icedamericano.png', category: 'Coffee' },
-  { id: 1, name: 'Caramel Macchiato', price: 49, img: '/icedcoffee/caramelmacchaito.png', category: 'Coffee' },
-  { id: 1, name: 'Cappucino CheeseCake', price: 49, img: '/icedcoffee/capuccinocheesecake.png', category: 'Coffee' },
-  { id: 1, name: 'Coffee Jelly', price: 49, img: '/images/espresso.png', category: 'Coffee' },
-  { id: 1, name: 'Dirty Matcha', price: 49, img: '/images/espresso.png', category: 'Coffee' },
-  { id: 1, name: 'Matcha Latte', price: 49, img: '/images/espresso.png', category: 'Coffee' },
-  { id: 2, name: 'Salted Caramel', price: 49, img: '/hotcoffee/saltedcaramel.png', category: 'Hot Coffee' },
-  { id: 2, name: 'Cappucino', price: 49, img: '/hotcoffee/capuccino.png', category: 'Hot Coffee' },
-  { id: 2, name: 'Caramel Macchiato', price: 49, img: '/hotcoffee/caramelmacchiato.png', category: 'Hot Coffee' },
-  { id: 2, name: 'French Vanilla', price: 49, img: '/hotcoffee/frenchvanilla.png', category: 'Hot Coffee' },
-  { id: 2, name: 'Hazelnut', price: 49, img: '/hotcoffee/hazelnut.png', category: 'Hot Coffee' },
-  { id: 2, name: 'Hot Choco', price: 49, img: '/hotcoffee/hotchoco.png', category: 'Hot Coffee' },
-  { id: 2, name: 'Matcha Latte', price: 49, img: '/hotcoffee/matchalatte.png', category: 'Hot Coffee' },
-  { id: 2, name: 'Roasted Coffee', price: 49, img: '/hotcoffee/roastedcoffee.png', category: 'Hot Coffee' },
-  { id: 3, name: 'Chocolate', price: 39, img: '/images/milk-tea.png', category: 'Milk Tea' },
-  { id: 3, name: 'Red Velvet', price: 39, img: '/images/milk-tea.png', category: 'Milk Tea' },
-  { id: 3, name: 'Matcha', price: 39, img: '/images/milk-tea.png', category: 'Milk Tea' },
-  { id: 3, name: 'Okinawa', price: 39, img: '/images/milk-tea.png', category: 'Milk Tea' },
-  { id: 3, name: 'Wintermelon', price: 39, img: '/images/milk-tea.png', category: 'Milk Tea' },
-  { id: 3, name: 'Cheesecake', price: 49, img: '/images/milk-tea.png', category: 'Milk Tea' },
-  { id: 3, name: 'Oreo Cheesecake', price: 49, img: '/images/milk-tea.png', category: 'Milk Tea' },
-  { id: 3, name: 'Red Velvet Cheesecake', price: 49, img: '/images/milk-tea.png', category: 'Milk Tea' },
-  { id: 3, name: 'Oreo Match', price: 49, img: '/images/milk-tea.png', category: 'Milk Tea' },
-  { id: 3, name: 'Choco Cheesecake', price: 49, img: '/images/milk-tea.png', category: 'Milk Tea' },
-  { id: 3, name: 'Mango Milk Tea', price: 39, img: '/images/milk-tea.png', category: 'Milk Tea' },
-  { id: 3, name: 'Mango Cheesecake', price: 59, img: '/images/milk-tea.png', category: 'Milk Tea' },
-  { id: 3, name: 'Mango Graham Cheesecake', price: 69, img: '/images/milk-tea.png', category: 'Milk Tea' },
-  { id: 4, name: 'Apple Green', price: 39, img: '/images/yogurt.png', category: 'Yogurt' },
-  { id: 4, name: 'Lychee', price: 39, img: '/images/yogurt.png', category: 'Yogurt' },
-  { id: 4, name: 'Blue Lemonaide', price: 39, img: '/images/yogurt.png', category: 'Yogurt' },
-  { id: 4, name: 'Four Season', price: 39, img: '/images/yogurt.png', category: 'Yogurt' },
-  { id: 4, name: 'Blue Berry', price: 39, img: '/images/yogurt.png', category: 'Yogurt' },
-  { id: 5, name: 'Passion Fruit', price: 39, img: '/images/yogurt.png', category: 'Fruit Tea' },
-  { id: 5, name: 'Four Season', price: 39, img: '/images/yogurt.png', category: 'Fruit Tea' },
-  { id: 5, name: 'Kiwi', price: 39, img: '/images/yogurt.png', category: 'Fruit Tea' },
-  { id: 5, name: 'Lychee', price: 39, img: '/images/yogurt.png', category: 'Fruit Tea' },
-  { id: 5, name: 'Strawberry', price: 39, img: '/images/yogurt.png', category: 'Fruit Tea' },
-  { id: 5, name: 'Greem Apple', price: 39, img: '/images/yogurt.png', category: 'Fruit Tea' },
-  { id: 5, name: 'Blue Berry', price: 39, img: '/images/yogurt.png', category: 'Fruit Tea' },
-  { id: 5, name: 'Orange', price: 39, img: '/images/yogurt.png', category: 'Fruit Tea' },
-  { id: 6, name: 'Siomai Rice', price: 40, img: '/images/sandwich.png', category: 'Food' },
-  { id: 6, name: 'Spam Silog', price: 65, img: '/images/sandwich.png', category: 'Food' },
-  { id: 6, name: 'Hungarian Silog', price: 75, img: '/images/sandwich.png', category: 'Food' },
-  { id: 6, name: 'Tonkatsu Rice', price: 65, img: '/images/sandwich.png', category: 'Food' },
-  { id: 6, name: 'Long Silog', price: 65, img: '/images/sandwich.png', category: 'Food' },
-  { id: 6, name: 'Pancit Canton w/ Rice', price: 45, img: '/images/sandwich.png', category: 'Food' },
-  { id: 6, name: 'Crispy Chicken Sandwich', price: 65, img: '/images/sandwich.png', category: 'Food' },
-  { id: 6, name: 'Cheese Burger w/ Egg', price: 55, img: '/images/sandwich.png', category: 'Food' },
-  { id: 6, name: 'Cheese Burger', price: 35, img: '/images/sandwich.png', category: 'Food' },
-  { id: 6, name: 'Buy1Take1 Burger', price: 65, img: '/images/sandwich.png', category: 'Food' },
-  { id: 6, name: 'Pancit Canton', price: 30, img: '/images/sandwich.png', category: 'Food' }
-];
+    { id: 1, name: 'Salted Caramel', price: 39, img: '/icedcoffee/saltedcaramel.png', category: 'Coffee' },
+    { id: 1, name: 'Spanish Latte', price: 39, img: '/icedcoffee/spanishlatte.png', category: 'Coffee' },
+    { id: 1, name: 'Hazelnut', price: 39, img: '/icedcoffee/hazelnut.png', category: 'Coffee' },
+    { id: 1, name: 'French Vanilla', price: 39, img: '/icedcoffee/frenchvanilla.png', category: 'Coffee' },
+    { id: 1, name: 'Iced Americano', price: 39, img: '/icedcoffee/icedamericano.png', category: 'Coffee' },
+    { id: 1, name: 'Caramel Macchiato', price: 49, img: '/icedcoffee/caramelmacchaito.png', category: 'Coffee' },
+    { id: 1, name: 'Cappucino CheeseCake', price: 49, img: '/icedcoffee/capuccinocheesecake.png', category: 'Coffee' },
+    { id: 1, name: 'Coffee Jelly', price: 49, img: '/images/espresso.png', category: 'Coffee' },
+    { id: 1, name: 'Dirty Matcha', price: 49, img: '/images/espresso.png', category: 'Coffee' },
+    { id: 1, name: 'Matcha Latte', price: 49, img: '/images/espresso.png', category: 'Coffee' },
+    { id: 2, name: 'Salted Caramel', price: 49, img: '/hotcoffee/saltedcaramel.png', category: 'Hot Coffee' },
+    { id: 2, name: 'Cappucino', price: 49, img: '/hotcoffee/capuccino.png', category: 'Hot Coffee' },
+    { id: 2, name: 'Caramel Macchiato', price: 49, img: '/hotcoffee/caramelmacchiato.png', category: 'Hot Coffee' },
+    { id: 2, name: 'French Vanilla', price: 49, img: '/hotcoffee/frenchvanilla.png', category: 'Hot Coffee' },
+    { id: 2, name: 'Hazelnut', price: 49, img: '/hotcoffee/hazelnut.png', category: 'Hot Coffee' },
+    { id: 2, name: 'Hot Choco', price: 49, img: '/hotcoffee/hotchoco.png', category: 'Hot Coffee' },
+    { id: 2, name: 'Matcha Latte', price: 49, img: '/hotcoffee/matchalatte.png', category: 'Hot Coffee' },
+    { id: 2, name: 'Roasted Coffee', price: 49, img: '/hotcoffee/roastedcoffee.png', category: 'Hot Coffee' },
+    { id: 3, name: 'Chocolate', price: 39, img: '/images/milk-tea.png', category: 'Milk Tea' },
+    { id: 3, name: 'Red Velvet', price: 39, img: '/images/milk-tea.png', category: 'Milk Tea' },
+    { id: 3, name: 'Matcha', price: 39, img: '/images/milk-tea.png', category: 'Milk Tea' },
+    { id: 3, name: 'Okinawa', price: 39, img: '/images/milk-tea.png', category: 'Milk Tea' },
+    { id: 3, name: 'Wintermelon', price: 39, img: '/images/milk-tea.png', category: 'Milk Tea' },
+    { id: 3, name: 'Cheesecake', price: 49, img: '/images/milk-tea.png', category: 'Milk Tea' },
+    { id: 3, name: 'Oreo Cheesecake', price: 49, img: '/images/milk-tea.png', category: 'Milk Tea' },
+    { id: 3, name: 'Red Velvet Cheesecake', price: 49, img: '/images/milk-tea.png', category: 'Milk Tea' },
+    { id: 3, name: 'Oreo Match', price: 49, img: '/images/milk-tea.png', category: 'Milk Tea' },
+    { id: 3, name: 'Choco Cheesecake', price: 49, img: '/images/milk-tea.png', category: 'Milk Tea' },
+    { id: 3, name: 'Mango Milk Tea', price: 39, img: '/images/milk-tea.png', category: 'Milk Tea' },
+    { id: 3, name: 'Mango Cheesecake', price: 59, img: '/images/milk-tea.png', category: 'Milk Tea' },
+    { id: 3, name: 'Mango Graham Cheesecake', price: 69, img: '/images/milk-tea.png', category: 'Milk Tea' },
+    { id: 4, name: 'Apple Green', price: 39, img: '/images/yogurt.png', category: 'Yogurt' },
+    { id: 4, name: 'Lychee', price: 39, img: '/images/yogurt.png', category: 'Yogurt' },
+    { id: 4, name: 'Blue Lemonaide', price: 39, img: '/images/yogurt.png', category: 'Yogurt' },
+    { id: 4, name: 'Four Season', price: 39, img: '/images/yogurt.png', category: 'Yogurt' },
+    { id: 4, name: 'Blue Berry', price: 39, img: '/images/yogurt.png', category: 'Yogurt' },
+    { id: 5, name: 'Passion Fruit', price: 39, img: '/images/yogurt.png', category: 'Fruit Tea' },
+    { id: 5, name: 'Four Season', price: 39, img: '/images/yogurt.png', category: 'Fruit Tea' },
+    { id: 5, name: 'Kiwi', price: 39, img: '/images/yogurt.png', category: 'Fruit Tea' },
+    { id: 5, name: 'Lychee', price: 39, img: '/images/yogurt.png', category: 'Fruit Tea' },
+    { id: 5, name: 'Strawberry', price: 39, img: '/images/yogurt.png', category: 'Fruit Tea' },
+    { id: 5, name: 'Greem Apple', price: 39, img: '/images/yogurt.png', category: 'Fruit Tea' },
+    { id: 5, name: 'Blue Berry', price: 39, img: '/images/yogurt.png', category: 'Fruit Tea' },
+    { id: 5, name: 'Orange', price: 39, img: '/images/yogurt.png', category: 'Fruit Tea' },
+    { id: 6, name: 'Siomai Rice', price: 40, img: '/images/sandwich.png', category: 'Food' },
+    { id: 6, name: 'Spam Silog', price: 65, img: '/images/sandwich.png', category: 'Food' },
+    { id: 6, name: 'Hungarian Silog', price: 75, img: '/images/sandwich.png', category: 'Food' },
+    { id: 6, name: 'Tonkatsu Rice', price: 65, img: '/images/sandwich.png', category: 'Food' },
+    { id: 6, name: 'Long Silog', price: 65, img: '/images/sandwich.png', category: 'Food' },
+    { id: 6, name: 'Pancit Canton w/ Rice', price: 45, img: '/images/sandwich.png', category: 'Food' },
+    { id: 6, name: 'Crispy Chicken Sandwich', price: 65, img: '/images/sandwich.png', category: 'Food' },
+    { id: 6, name: 'Cheese Burger w/ Egg', price: 55, img: '/images/sandwich.png', category: 'Food' },
+    { id: 6, name: 'Cheese Burger', price: 35, img: '/images/sandwich.png', category: 'Food' },
+    { id: 6, name: 'Buy1Take1 Burger', price: 65, img: '/images/sandwich.png', category: 'Food' },
+    { id: 6, name: 'Pancit Canton', price: 30, img: '/images/sandwich.png', category: 'Food' }
+  ];
 
   let selectedCategory = "Coffee";
   let orders: OrderItem[] = [];
   let totalCost = 0;
   let customerPayment = 0;
   let change = 0;
-
 
   function getFilteredMenuItems() {
     return menuItems.filter(item => item.category === selectedCategory);
@@ -124,8 +124,24 @@
     change = customerPayment >= totalCost ? customerPayment - totalCost : 0;
   }
 
-  
+  function placeOrder() {
+    if (orders.length === 0) {
+      alert("No items to place an order.");
+      return;
+    }
 
+    const orderData = {
+      items: orders,
+      totalCost
+    };
+    localStorage.setItem(`Order_${Date.now()}`, JSON.stringify(orderData));
+
+    window.location.href = '/view-orders';
+    orders = [];
+    totalCost = 0;
+    change = 0;
+    customerPayment = 0;
+  }
 </script>
 
 <style>

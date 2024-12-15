@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-
   interface OrderItem {
     id: number;
     name: string;
@@ -16,10 +14,55 @@
     totalSales: number;
   }
 
-  let orders: OrderItem[] = [];
+  // Example orders for testing
+  let orders: OrderItem[] = [
+    { id: 1, name: 'Salted Caramel', size: 'Medium', sizePrice: 39, quantity: 2, totalPrice: 78 },
+    { id: 2, name: 'Spanish Latte', size: 'Large', sizePrice: 49, quantity: 1, totalPrice: 49 },
+  ];
+
+  // Array to store completed orders for the Sales Report
   let salesReport: SalesReport[] = [];
 
- 
+  // Function to calculate the total sales of the completed orders
+  function calculateTotalSales(orders: OrderItem[]): number {
+    return orders.reduce((total, order) => total + order.totalPrice, 0);
+  }
+
+  function editOrder(order: OrderItem) {
+    alert(`Edit order: ${order.name}`);
+  }
+
+  function deleteOrder(order: OrderItem) {
+    orders = orders.filter(o => o !== order);
+  }
+
+  function completeOrder(order: OrderItem) {
+    // Move the order to salesReport
+    salesReport = [...salesReport, {
+      date: new Date().toLocaleDateString(),  // Current date
+      orders: [order],
+      totalSales: order.totalPrice
+    }];
+    
+    // Remove the order from the current orders list
+    orders = orders.filter(o => o !== order);
+  }
+
+  function submitSalesReport() {
+    if (salesReport.length === 0) {
+      alert('No completed orders to submit.');
+      return;
+    }
+
+    // Log or submit sales report
+    const report = {
+      date: new Date().toLocaleDateString(),
+      totalSales: calculateTotalSales(salesReport.flatMap(report => report.orders)),
+    };
+
+    console.log('Sales Report Submitted:', report);
+    alert('Sales report submitted successfully.');
+  }
 </script>
 
 <!-- svelte-ignore css_unused_selector -->

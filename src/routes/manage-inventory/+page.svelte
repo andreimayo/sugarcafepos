@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-
   interface InventoryItem {
     id: number;
     name: string;
@@ -8,13 +6,50 @@
     price: number;
   }
 
-  let inventory: InventoryItem[] = [];
+  let inventory: InventoryItem[] = [
+
+  ];
 
   let newItem: InventoryItem = { id: 0, name: '', quantity: 0, price: 0 };
   let editingMode = false;
   let currentItem: InventoryItem = { ...newItem };
 
-  
+  // Add a new item
+  function addItem() {
+    if (currentItem.name && currentItem.quantity > 0 && currentItem.price > 0) {
+      currentItem.id = inventory.length + 1;
+      inventory = [...inventory, { ...currentItem }];
+      resetForm();
+    } else {
+      alert('All fields are required.');
+    }
+  }
+
+  // Edit an existing item
+  function editItem(item: InventoryItem) {
+    editingMode = true;
+    currentItem = { ...item };
+  }
+
+  // Save the edited item
+  function saveItem() {
+    const index = inventory.findIndex((item) => item.id === currentItem.id);
+    if (index !== -1) {
+      inventory[index] = { ...currentItem };
+      resetForm();
+    }
+  }
+
+  // Delete an item
+  function deleteItem(item: InventoryItem) {
+    inventory = inventory.filter((i) => i.id !== item.id);
+  }
+
+  // Reset the form
+  function resetForm() {
+    editingMode = false;
+    currentItem = { id: 0, name: '', quantity: 0, price: 0 };
+  }
 </script>
 
 <style>
@@ -129,7 +164,7 @@
   }
 
   .sidebar button:hover {
-    background-color: #a88b6f; /* Darker muted brown */
+    background-color: #a88b6f;
   }
 </style>
 
@@ -158,8 +193,9 @@
         <label>Item Name</label>
         <input type="text" bind:value={currentItem.name} placeholder="Enter item name" />
       </div>
-      <div class="form-group">
+      <!-- svelte-ignore a11y_label_has_associated_control -->
         <!-- svelte-ignore a11y_label_has_associated_control -->
+      <div class="form-group">
         <label>Quantity</label>
         <input type="number" bind:value={currentItem.quantity} placeholder="Enter quantity" />
       </div>
