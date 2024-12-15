@@ -124,39 +124,8 @@
     change = customerPayment >= totalCost ? customerPayment - totalCost : 0;
   }
 
-  async function placeOrder() {
-    if (orders.length === 0) {
-      alert("No items to place an order.");
-      return;
-    }
+  
 
-    const orderData = {
-      items: orders,
-      totalCost
-    };
-
-    try {
-      const response = await fetch('/api/orders/create.php', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(orderData),
-      });
-
-      if (response.ok) {
-        window.location.href = '/view-orders';
-        orders = [];
-        totalCost = 0;
-        change = 0;
-        customerPayment = 0;
-      } else {
-        console.error('Failed to place order');
-      }
-    } catch (error) {
-      console.error('Error placing order:', error);
-    }
-  }
 </script>
 
 <style>
