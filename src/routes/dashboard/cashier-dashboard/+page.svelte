@@ -1,5 +1,6 @@
 <script lang="ts">
-  // Existing TypeScript code remains unchanged
+  import { onMount } from 'svelte';
+
   interface MenuItem {
     id: number;
     name: string;
@@ -124,26 +125,31 @@
     change = customerPayment >= totalCost ? customerPayment - totalCost : 0;
   }
 
-  function placeOrder() {
-    if (orders.length === 0) {
-      alert("No items to place an order.");
-      return;
+  async function placeOrder(orderDetails: any) {
+  try {
+    const response = await fetch('/api/orders/manage', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(orderDetails),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const orderData = {
-      items: orders,
-      totalCost
-    };
-    localStorage.setItem(`Order_${Date.now()}`, JSON.stringify(orderData));
+    const data = await response.json();
+    console.log('Order placed successfully:', data);
+    alert('Order placed successfully!');
 
-    window.location.href = '/view-orders';
-    orders = [];
-    totalCost = 0;
-    change = 0;
-    customerPayment = 0;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to place order';
+    alert('Error placing order: ' + errorMessage);
   }
-</script>
+}
 
+</script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
   :global(body) {

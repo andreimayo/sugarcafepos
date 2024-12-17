@@ -11,7 +11,7 @@
         let newPassword = '';
         let confirmPassword = '';
     
-        const apiUrl = 'http://localhost/api/auth/login.php'; // Update this URL to match your API endpoint for admin login
+        const apiUrl = '/api/auth/login';
     
         async function login(event) {
             event.preventDefault();

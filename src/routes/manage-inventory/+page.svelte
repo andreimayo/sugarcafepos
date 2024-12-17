@@ -1,54 +1,96 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
+
   interface InventoryItem {
     id: number;
     name: string;
-    quantity: number;
+    description: string;
     price: number;
+    stock_quantity: number;
+    category: string;
   }
 
-  let inventory: InventoryItem[] = [
-
-  ];
-
-  let newItem: InventoryItem = { id: 0, name: '', quantity: 0, price: 0 };
+  let inventory: InventoryItem[] = [];
+  let newItem: InventoryItem = { id: 0, name: '', description: '', price: 0, stock_quantity: 0, category: '' };
   let editingMode = false;
   let currentItem: InventoryItem = { ...newItem };
 
-  // Add a new item
-  function addItem() {
-    if (currentItem.name && currentItem.quantity > 0 && currentItem.price > 0) {
-      currentItem.id = inventory.length + 1;
-      inventory = [...inventory, { ...currentItem }];
-      resetForm();
+  onMount(async () => {
+    await fetchInventory();
+  });
+
+  async function fetchInventory() {
+    try {
+      const response = await fetch('/api/inventory/manage');
+      if (!response.ok) throw new Error('Failed to fetch inventory');
+      inventory = await response.json();
+    } catch (error) {
+      console.error('Error fetching inventory:', error);
+      alert('Failed to fetch inventory. Please try again.');
+    }
+  }
+
+  async function addItem() {
+    if (currentItem.name && currentItem.stock_quantity > 0 && currentItem.price > 0) {
+      try {
+        const response = await fetch('/api/invetory/manage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(currentItem)
+        });
+        if (!response.ok) throw new Error('Failed to add item');
+        await fetchInventory();
+        resetForm();
+      } catch (error) {
+        console.error('Error adding item:', error);
+        alert('Failed to add item. Please try again.');
+      }
     } else {
       alert('All fields are required.');
     }
   }
 
-  // Edit an existing item
-  function editItem(item: InventoryItem) {
+  async function editItem(item: InventoryItem) {
     editingMode = true;
     currentItem = { ...item };
   }
 
-  // Save the edited item
-  function saveItem() {
-    const index = inventory.findIndex((item) => item.id === currentItem.id);
-    if (index !== -1) {
-      inventory[index] = { ...currentItem };
+  async function saveItem() {
+    try {
+      const response = await fetch(`/api/inventory/manage`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(currentItem)
+      });
+      if (!response.ok) throw new Error('Failed to update item');
+      await fetchInventory();
       resetForm();
+    } catch (error) {
+      console.error('Error updating item:', error);
+      alert('Failed to update item. Please try again.');
     }
   }
 
-  // Delete an item
-  function deleteItem(item: InventoryItem) {
-    inventory = inventory.filter((i) => i.id !== item.id);
+  async function deleteItem(item: InventoryItem) {
+    if (confirm(`Are you sure you want to delete ${item.name}?`)) {
+      try {
+        const response = await fetch(`/api/invetory/manage`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: item.id })
+        });
+        if (!response.ok) throw new Error('Failed to delete item');
+        await fetchInventory();
+      } catch (error) {
+        console.error('Error deleting item:', error);
+        alert('Failed to delete item. Please try again.');
+      }
+    }
   }
 
-  // Reset the form
   function resetForm() {
     editingMode = false;
-    currentItem = { id: 0, name: '', quantity: 0, price: 0 };
+    currentItem = { id: 0, name: '', description: '', price: 0, stock_quantity: 0, category: '' };
   }
 </script>
 
@@ -189,20 +231,24 @@
     <div class="card">
       <h3 class="text-lg font-bold mb-2">{editingMode ? 'Edit Item' : 'Add Item'}</h3>
       <div class="form-group">
-        <!-- svelte-ignore a11y_label_has_associated_control -->
-        <label>Item Name</label>
-        <input type="text" bind:value={currentItem.name} placeholder="Enter item name" />
-      </div>
-      <!-- svelte-ignore a11y_label_has_associated_control -->
-        <!-- svelte-ignore a11y_label_has_associated_control -->
-      <div class="form-group">
-        <label>Quantity</label>
-        <input type="number" bind:value={currentItem.quantity} placeholder="Enter quantity" />
+        <label for="itemName">Item Name</label>
+        <input id="itemName" type="text" bind:value={currentItem.name} placeholder="Enter item name" />
       </div>
       <div class="form-group">
-        <!-- svelte-ignore a11y_label_has_associated_control -->
-        <label>Price</label>
-        <input type="number" bind:value={currentItem.price} placeholder="Enter price" />
+        <label for="itemDescription">Description</label>
+        <input id="itemDescription" type="text" bind:value={currentItem.description} placeholder="Enter description" />
+      </div>
+      <div class="form-group">
+        <label for="itemQuantity">Quantity</label>
+        <input id="itemQuantity" type="number" bind:value={currentItem.stock_quantity} placeholder="Enter quantity" />
+      </div>
+      <div class="form-group">
+        <label for="itemPrice">Price</label>
+        <input id="itemPrice" type="number" bind:value={currentItem.price} placeholder="Enter price" />
+      </div>
+      <div class="form-group">
+        <label for="itemCategory">Category</label>
+        <input id="itemCategory" type="text" bind:value={currentItem.category} placeholder="Enter category" />
       </div>
       <button class={editingMode ? 'btn-secondary' : 'btn-primary'} on:click={editingMode ? saveItem : addItem}>
         {editingMode ? 'Save Changes' : 'Add Item'}
@@ -217,8 +263,10 @@
           <thead>
             <tr>
               <th>Item Name</th>
+              <th>Description</th>
               <th>Quantity</th>
               <th>Price</th>
+              <th>Category</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -226,8 +274,10 @@
             {#each inventory as item}
               <tr>
                 <td>{item.name}</td>
-                <td>{item.quantity}</td>
+                <td>{item.description}</td>
+                <td>{item.stock_quantity}</td>
                 <td>₱{item.price.toFixed(2)}</td>
+                <td>{item.category}</td>
                 <td>
                   <button class="btn-secondary px-2 py-1" on:click={() => editItem(item)}>Edit</button>
                   <button class="btn-danger px-2 py-1" on:click={() => deleteItem(item)}>Delete</button>
@@ -240,3 +290,4 @@
     </div>
   </section>
 </main>
+

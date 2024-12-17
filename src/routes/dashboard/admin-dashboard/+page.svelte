@@ -1,20 +1,74 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
+
   interface SalesReport {
-    date: string; // Format: YYYY-MM-DD
-    totalSales: number;
+    date: string;
+    total_sales: number;
+    order_count: number;
   }
 
-  let salesReports: SalesReport[] = [
-    { date: '2024-11-19', totalSales: 2000.0 },
-    { date: '2024-11-18', totalSales: 1500.5 },
-    { date: '2024-11-15', totalSales: 1800.75 },
-    { date: '2024-11-10', totalSales: 2200.0 },
-    { date: '2024-10-25', totalSales: 3000.0 },
-  ];
+  interface TopProduct {
+    id: number;
+    name: string;
+    total_quantity: number;
+    total_sales: number;
+  }
+
+  let salesReports: SalesReport[] = [];
+  let topProducts: TopProduct[] = [];
+  let totalRevenue: number = 0;
 
   let weekStartDate: string = '';
   let weekEndDate: string = '';
   let selectedMonth: string = '';
+
+  onMount(async () => {
+    await fetchInitialData();
+  });
+
+  async function fetchInitialData() {
+    const today = new Date();
+    const oneWeekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    weekStartDate = oneWeekAgo.toISOString().split('T')[0];
+    weekEndDate = today.toISOString().split('T')[0];
+    await fetchSalesData();
+    await fetchTopProducts();
+    await fetchTotalRevenue();
+  }
+
+  async function fetchSalesData() {
+    try {
+      const response = await fetch(`/api/admin/dashboard?action=sales_data&start_date=${weekStartDate}&end_date=${weekEndDate}`);
+      if (!response.ok) throw new Error('Failed to fetch sales data');
+      salesReports = await response.json();
+    } catch (error) {
+      console.error('Error fetching sales data:', error);
+      alert('Failed to fetch sales data. Please try again.');
+    }
+  }
+
+  async function fetchTopProducts() {
+    try {
+      const response = await fetch('/api/admin/dashboard?action=top_products&limit=5');
+      if (!response.ok) throw new Error('Failed to fetch top products');
+      topProducts = await response.json();
+    } catch (error) {
+      console.error('Error fetching top products:', error);
+      alert('Failed to fetch top products. Please try again.');
+    }
+  }
+
+  async function fetchTotalRevenue() {
+    try {
+      const response = await fetch(`/api/admin/dashboard?action=total_revenue&start_date=${weekStartDate}&end_date=${weekEndDate}`);
+      if (!response.ok) throw new Error('Failed to fetch total revenue');
+      const data = await response.json();
+      totalRevenue = data.total_revenue;
+    } catch (error) {
+      console.error('Error fetching total revenue:', error);
+      alert('Failed to fetch total revenue. Please try again.');
+    }
+  }
 
   function logout() {
     window.location.href = '/login';
@@ -37,25 +91,10 @@
     });
   }
 
-  $: filteredSales = salesReports.filter((report) => {
-    if (weekStartDate && weekEndDate) {
-      const start = new Date(weekStartDate);
-      const end = new Date(weekEndDate);
-      const reportDate = new Date(report.date);
-      return reportDate >= start && reportDate <= end;
-    } else if (selectedMonth) {
-      const [year, month] = selectedMonth.split('-').map(Number);
-      const reportDate = new Date(report.date);
-      return (
-        reportDate.getFullYear() === year &&
-        reportDate.getMonth() + 1 === month
-      );
-    }
-    return true;
-  });
+  $: filteredSales = salesReports;
 
   $: totalFilteredSales = filteredSales.reduce(
-    (total, report) => total + report.totalSales,
+    (total, report) => total + report.total_sales,
     0
   );
 
@@ -64,22 +103,22 @@
     : 0;
 
   $: highestSalesDay = filteredSales.reduce(
-    (max, report) => (report.totalSales > max.totalSales ? report : max),
-    { date: '', totalSales: 0 }
+    (max, report) => (report.total_sales > max.total_sales ? report : max),
+    { date: '', total_sales: 0 }
   );
 
   $: lowestSalesDay = filteredSales.reduce(
-    (min, report) => (report.totalSales < min.totalSales ? report : min),
-    { date: '', totalSales: Infinity }
+    (min, report) => (report.total_sales < min.total_sales ? report : min),
+    { date: '', total_sales: Infinity }
   );
 
   $: salesTrend = filteredSales.length > 1
-    ? (filteredSales[filteredSales.length - 1].totalSales - filteredSales[0].totalSales) /
+    ? (filteredSales[filteredSales.length - 1].total_sales - filteredSales[0].total_sales) /
       (filteredSales.length - 1)
     : 0;
 
-  $: maxSales = Math.max(...filteredSales.map(report => report.totalSales));
-  $: minSales = Math.min(...filteredSales.map(report => report.totalSales));
+  $: maxSales = Math.max(...filteredSales.map(report => report.total_sales));
+  $: minSales = Math.min(...filteredSales.map(report => report.total_sales));
 
   $: sortedSales = [...filteredSales].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
@@ -90,6 +129,11 @@
   function getYAxisLabels(maxSales: number): number[] {
     const step = maxSales / 4;
     return [0, step, step * 2, step * 3, maxSales];
+  }
+
+  async function handleDateChange() {
+    await fetchSalesData();
+    await fetchTotalRevenue();
   }
 </script>
 
@@ -265,26 +309,43 @@
       <h3 class="card-header">Filter Sales</h3>
       <div class="form-group">
         <!-- svelte-ignore a11y_label_has_associated_control -->
-        <label class="text-secondary">Select Week</label>
+        <label class="text-secondary">Select Date Range</label>
         <div class="flex space-x-2">
-          <input type="date" bind:value={weekStartDate} />
-          <input type="date" bind:value={weekEndDate} />
+          <input type="date" bind:value={weekStartDate} on:change={handleDateChange} />
+          <input type="date" bind:value={weekEndDate} on:change={handleDateChange} />
         </div>
-      </div>
-      <div class="form-group">
-        <!-- svelte-ignore a11y_label_has_associated_control -->
-        <label class="text-secondary">Select Month</label>
-        <input type="month" bind:value={selectedMonth} />
       </div>
     </div>
 
     <div class="card">
       <h3 class="card-header">Sales Analysis</h3>
-      <p class="text-lg text-secondary">Total Sales: ₱{totalFilteredSales.toFixed(2)}</p>
+      <p class="text-lg text-secondary">Total Revenue: ₱{totalRevenue.toFixed(2)}</p>
       <p class="text-secondary">Average Daily Sales: ₱{averageDailySales.toFixed(2)}</p>
-      <p class="text-secondary">Highest Sales Day: {formatDate(highestSalesDay.date)} (₱{highestSalesDay.totalSales.toFixed(2)})</p>
-      <p class="text-secondary">Lowest Sales Day: {formatDate(lowestSalesDay.date)} (₱{lowestSalesDay.totalSales.toFixed(2)})</p>
+      <p class="text-secondary">Highest Sales Day: {formatDate(highestSalesDay.date)} (₱{highestSalesDay.total_sales.toFixed(2)})</p>
+      <p class="text-secondary">Lowest Sales Day: {formatDate(lowestSalesDay.date)} (₱{lowestSalesDay.total_sales.toFixed(2)})</p>
       <p class="text-secondary">Sales Trend: {salesTrend > 0 ? 'Increasing' : salesTrend < 0 ? 'Decreasing' : 'Stable'} (₱{Math.abs(salesTrend).toFixed(2)}/day)</p>
+    </div>
+
+    <div class="card">
+      <h3 class="card-header">Top Selling Products</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Product Name</th>
+            <th>Total Quantity</th>
+            <th>Total Sales</th>
+          </tr>
+        </thead>
+        <tbody>
+          {#each topProducts as product}
+            <tr>
+              <td>{product.name}</td>
+              <td>{product.total_quantity}</td>
+              <td>₱{product.total_sales.toFixed(2)}</td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
     </div>
 
     <div class="card">
@@ -302,7 +363,7 @@
 
           <!-- Bars and labels -->
           {#each sortedSales as report, i}
-            {@const barHeight = getBarHeight(report.totalSales, 240)}
+            {@const barHeight = getBarHeight(report.total_sales, 240)}
             {@const barWidth = (100 / sortedSales.length) - 2}
             {@const barX = 40 + (i * (100 / sortedSales.length)) + '%'}
             <rect 
@@ -327,7 +388,7 @@
               text-anchor="middle" 
               class="chart-text"
             >
-              ₱{report.totalSales.toFixed(0)}
+              ₱{report.total_sales.toFixed(0)}
             </text>
           {/each}
         </svg>
@@ -350,13 +411,15 @@
             <tr>
               <th>Date</th>
               <th>Total Sales</th>
+              <th>Order Count</th>
             </tr>
           </thead>
           <tbody>
             {#each filteredSales as report}
               <tr>
                 <td>{formatDate(report.date)}</td>
-                <td>₱{report.totalSales.toFixed(2)}</td>
+                <td>₱{report.total_sales.toFixed(2)}</td>
+                <td>{report.order_count}</td>
               </tr>
             {/each}
           </tbody>

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
+
   interface OrderItem {
     id: number;
     name: string;
@@ -14,54 +16,115 @@
     totalSales: number;
   }
 
-  // Example orders for testing
-  let orders: OrderItem[] = [
-    { id: 1, name: 'Salted Caramel', size: 'Medium', sizePrice: 39, quantity: 2, totalPrice: 78 },
-    { id: 2, name: 'Spanish Latte', size: 'Large', sizePrice: 49, quantity: 1, totalPrice: 49 },
-  ];
-
-  // Array to store completed orders for the Sales Report
+  let orders: OrderItem[] = [];
   let salesReport: SalesReport[] = [];
 
-  // Function to calculate the total sales of the completed orders
+  onMount(async () => {
+    await fetchOrders();
+  });
+
+  async function fetchOrders() {
+    try {
+      const response = await fetch('/api/orders/view_orders?action=get_orders');
+      if (!response.ok) throw new Error('Failed to fetch orders');
+      const data = await response.json();
+      orders = data.map((order: { id: any; cashier_name: any; total_amount: any; }) => ({
+        id: order.id,
+        name: order.cashier_name,
+        size: 'N/A',
+        sizePrice: order.total_amount,
+        quantity: 1,
+        totalPrice: order.total_amount
+      }));
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      alert('Failed to fetch orders. Please try again.');
+    }
+  }
+
   function calculateTotalSales(orders: OrderItem[]): number {
     return orders.reduce((total, order) => total + order.totalPrice, 0);
   }
 
-  function editOrder(order: OrderItem) {
+  async function editOrder(order: OrderItem) {
     alert(`Edit order: ${order.name}`);
+    // Implement edit functionality if needed
   }
 
-  function deleteOrder(order: OrderItem) {
-    orders = orders.filter(o => o !== order);
+  async function deleteOrder(order: OrderItem) {
+    // In a real application, you would send a DELETE request to the server
+    // For now, we'll just remove it from the local array
+    orders = orders.filter(o => o.id !== order.id);
   }
 
-  function completeOrder(order: OrderItem) {
-    // Move the order to salesReport
-    salesReport = [...salesReport, {
-      date: new Date().toLocaleDateString(),  // Current date
-      orders: [order],
-      totalSales: order.totalPrice
-    }];
-    
-    // Remove the order from the current orders list
-    orders = orders.filter(o => o !== order);
+  async function completeOrder(order: OrderItem) {
+    try {
+      const response = await fetch('/api/orders/view_orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'submit_sales',
+          order_ids: [order.id]
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to complete order');
+      const result = await response.json();
+
+      if (result.success) {
+        salesReport = [...salesReport, {
+          date: new Date().toLocaleDateString(),
+          orders: [order],
+          totalSales: order.totalPrice
+        }];
+        orders = orders.filter(o => o.id !== order.id);
+      } else {
+        throw new Error(result.message || 'Failed to complete order');
+      }
+    } catch (error) {
+      console.error('Error completing order:', error);
+      alert('Failed to complete order. Please try again.');
+    }
   }
 
-  function submitSalesReport() {
+  async function submitSalesReport() {
     if (salesReport.length === 0) {
       alert('No completed orders to submit.');
       return;
     }
 
-    // Log or submit sales report
-    const report = {
-      date: new Date().toLocaleDateString(),
-      totalSales: calculateTotalSales(salesReport.flatMap(report => report.orders)),
-    };
+    try {
+      const orderIds = salesReport.flatMap(report => report.orders.map(order => order.id));
+      const response = await fetch('/api/orders/view_orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'submit_sales',
+          order_ids: orderIds
+        })
+      });
 
-    console.log('Sales Report Submitted:', report);
-    alert('Sales report submitted successfully.');
+      if (!response.ok) throw new Error('Failed to submit sales report');
+      const result = await response.json();
+
+      if (result.success) {
+        console.log('Sales Report Submitted:', {
+          date: new Date().toLocaleDateString(),
+          totalSales: calculateTotalSales(salesReport.flatMap(report => report.orders)),
+        });
+        alert('Sales report submitted successfully.');
+        salesReport = [];
+      } else {
+        throw new Error(result.message || 'Failed to submit sales report');
+      }
+    } catch (error) {
+      console.error('Error submitting sales report:', error);
+      alert('Failed to submit sales report. Please try again.');
+    }
   }
 </script>
 

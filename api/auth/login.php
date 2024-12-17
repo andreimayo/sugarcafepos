@@ -1,106 +1,128 @@
 <?php
-header("Access-Control-Allow-Origin: *");
-header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Methods: POST");
+// Enable error reporting for debugging
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 
-include_once '../config/Database.php';
+// Enable CORS
+header('Access-Control-Allow-Origin: http://localhost:5173');
+header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+header('Access-Control-Allow-Credentials: true');
+header('Content-Type: application/json; charset=utf-8');
 
-class Auth {
-    private $conn;
-    private $table_name = "users";
-
-    public function __construct($db) {
-        $this->conn = $db;
-    }
-
-    public function login($username, $password, $role) {
-        $query = "SELECT id, username, password, role FROM " . $this->table_name . 
-                " WHERE username = ? AND role = ?";
-        
-        $stmt = $this->conn->prepare($query);
-        $stmt->execute([$username, $role]);
-        
-        if($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            if(password_verify($password, $row['password'])) {
-                return [
-                    'success' => true,
-                    'data' => [
-                        'id' => $row['id'],
-                        'username' => $row['username'],
-                        'role' => $row['role']
-                    ]
-                ];
-            }
-        }
-        
-        return ['success' => false, 'message' => 'Invalid credentials'];
-    }
-
-    public function changePassword($userId, $currentPassword, $newPassword) {
-        // First, verify the current password
-        $query = "SELECT password FROM " . $this->table_name . " WHERE id = ?";
-        $stmt = $this->conn->prepare($query);
-        $stmt->execute([$userId]);
-        
-        if($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            if(password_verify($currentPassword, $row['password'])) {
-                // Current password is correct, proceed with password change
-                $hashedNewPassword = password_hash($newPassword, PASSWORD_DEFAULT);
-                
-                $updateQuery = "UPDATE " . $this->table_name . " SET password = ? WHERE id = ?";
-                $updateStmt = $this->conn->prepare($updateQuery);
-                
-                if($updateStmt->execute([$hashedNewPassword, $userId])) {
-                    return ['success' => true, 'message' => 'Password changed successfully'];
-                } else {
-                    return ['success' => false, 'message' => 'Failed to update password'];
-                }
-            } else {
-                return ['success' => false, 'message' => 'Current password is incorrect'];
-            }
-        }
-        
-        return ['success' => false, 'message' => 'User not found'];
-    }
+// Handle preflight OPTIONS request
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
 }
 
-// Handle login and password change requests
-$database = new Database();
-$db = $database->getConnection();
-$auth = new Auth($db);
+// Database connection
+try {
+    $pdo = new PDO(
+        "mysql:host=localhost;dbname=sugarcafe_pos;charset=utf8mb4",
+        "root",
+        "",
+        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+    );
+} catch(PDOException $e) {
+    error_log("Database connection error: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Database connection failed']);
+    exit();
+}
 
-$data = json_decode(file_get_contents("php://input"));
+// Handle POST request
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    try {
+        $rawData = file_get_contents('php://input');
+        error_log("Received raw data: " . $rawData); // Debug log
+        
+        $data = json_decode($rawData, true);
+        
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new Exception('Invalid JSON: ' . json_last_error_msg());
+        }
 
-if(isset($data->action)) {
-    switch($data->action) {
-        case 'login':
-            if(!empty($data->username) && !empty($data->password) && !empty($data->role)) {
-                $result = $auth->login($data->username, $data->password, $data->role);
-                http_response_code($result['success'] ? 200 : 401);
-                echo json_encode($result);
-            } else {
-                http_response_code(400);
-                echo json_encode(["message" => "Incomplete data for login"]);
+        if (!isset($data['action'])) {
+            throw new Exception('Action not specified');
+        }
+
+        if ($data['action'] === 'login') {
+            if (!isset($data['username']) || !isset($data['password']) || !isset($data['role'])) {
+                throw new Exception('Missing login credentials');
             }
-            break;
 
-        case 'change_password':
-            if(!empty($data->userId) && !empty($data->currentPassword) && !empty($data->newPassword)) {
-                $result = $auth->changePassword($data->userId, $data->currentPassword, $data->newPassword);
-                http_response_code($result['success'] ? 200 : 400);
-                echo json_encode($result);
-            } else {
-                http_response_code(400);
-                echo json_encode(["message" => "Incomplete data for password change"]);
+            $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ? AND role = ?");
+            $stmt->execute([$data['username'], $data['role']]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($user && password_verify($data['password'], $user['password'])) {
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Login successful',
+                    'data' => [
+                        'id' => $user['id'],
+                        'username' => $user['username'],
+                        'role' => $user['role']
+                    ]
+                ]);
+                exit();
             }
-            break;
 
-        default:
-            http_response_code(400);
-            echo json_encode(["message" => "Invalid action"]);
-            break;
+            http_response_code(401);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Invalid credentials'
+            ]);
+            exit();
+        }
+        
+        if ($data['action'] === 'change_password') {
+            if (!isset($data['userId']) || !isset($data['currentPassword']) || !isset($data['newPassword'])) {
+                throw new Exception('Missing password change fields');
+            }
+
+            $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+            $stmt->execute([$data['userId']]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$user || !password_verify($data['currentPassword'], $user['password'])) {
+                http_response_code(401);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Current password is incorrect'
+                ]);
+                exit();
+            }
+
+            $hashedPassword = password_hash($data['newPassword'], PASSWORD_DEFAULT);
+            $stmt = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
+            $stmt->execute([$hashedPassword, $data['userId']]);
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Password updated successfully'
+            ]);
+            exit();
+        }
+
+        throw new Exception('Invalid action');
+
+    } catch (Exception $e) {
+        error_log("Login error: " . $e->getMessage());
+        http_response_code(400);
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
+        exit();
     }
 } else {
-    http_response_code(400);
-    echo json_encode(["message" => "Action is required"]);
+    http_response_code(405);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Method not allowed'
+    ]);
+    exit();
 }
+?>
