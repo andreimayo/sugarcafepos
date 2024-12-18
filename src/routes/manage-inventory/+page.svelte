@@ -21,7 +21,7 @@
 
   async function fetchInventory() {
     try {
-      const response = await fetch('/api/inventory/manage');
+      const response = await fetch('/api/manage-inventory.php');
       if (!response.ok) throw new Error('Failed to fetch inventory');
       inventory = await response.json();
     } catch (error) {
@@ -33,7 +33,7 @@
   async function addItem() {
     if (currentItem.name && currentItem.stock_quantity > 0 && currentItem.price > 0) {
       try {
-        const response = await fetch('/api/invetory/manage', {
+        const response = await fetch('/api/manage-inventory.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(currentItem)
@@ -57,7 +57,7 @@
 
   async function saveItem() {
     try {
-      const response = await fetch(`/api/inventory/manage`, {
+      const response = await fetch(`/api/manage-inventory.php`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(currentItem)
@@ -74,7 +74,7 @@
   async function deleteItem(item: InventoryItem) {
     if (confirm(`Are you sure you want to delete ${item.name}?`)) {
       try {
-        const response = await fetch(`/api/invetory/manage`, {
+        const response = await fetch(`/api/manage-inventory.php`, {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id: item.id })

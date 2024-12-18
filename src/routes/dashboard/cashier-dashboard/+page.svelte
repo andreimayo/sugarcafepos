@@ -127,7 +127,7 @@
 
   async function placeOrder(orderDetails: any) {
   try {
-    const response = await fetch('/api/orders/manage', {
+    const response = await fetch('/api/manage-orders.php', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

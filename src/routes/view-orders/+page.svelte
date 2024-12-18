@@ -25,7 +25,7 @@
 
   async function fetchOrders() {
     try {
-      const response = await fetch('/api/orders/view_orders?action=get_orders');
+      const response = await fetch('/api/view_orders.php?action=get_orders');
       if (!response.ok) throw new Error('Failed to fetch orders');
       const data = await response.json();
       orders = data.map((order: { id: any; cashier_name: any; total_amount: any; }) => ({
@@ -59,7 +59,7 @@
 
   async function completeOrder(order: OrderItem) {
     try {
-      const response = await fetch('/api/orders/view_orders', {
+      const response = await fetch('/api/view_orders.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -97,7 +97,7 @@
 
     try {
       const orderIds = salesReport.flatMap(report => report.orders.map(order => order.id));
-      const response = await fetch('/api/orders/view_orders', {
+      const response = await fetch('/api/view_orders.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

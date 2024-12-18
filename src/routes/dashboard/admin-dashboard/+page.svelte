@@ -38,7 +38,7 @@
 
   async function fetchSalesData() {
     try {
-      const response = await fetch(`/api/admin/dashboard?action=sales_data&start_date=${weekStartDate}&end_date=${weekEndDate}`);
+      const response = await fetch(`/api/dashboard,php?action=sales_data&start_date=${weekStartDate}&end_date=${weekEndDate}`);
       if (!response.ok) throw new Error('Failed to fetch sales data');
       salesReports = await response.json();
     } catch (error) {
@@ -49,7 +49,7 @@
 
   async function fetchTopProducts() {
     try {
-      const response = await fetch('/api/admin/dashboard?action=top_products&limit=5');
+      const response = await fetch('/api/dashboard.php?action=top_products&limit=5');
       if (!response.ok) throw new Error('Failed to fetch top products');
       topProducts = await response.json();
     } catch (error) {
@@ -60,7 +60,7 @@
 
   async function fetchTotalRevenue() {
     try {
-      const response = await fetch(`/api/admin/dashboard?action=total_revenue&start_date=${weekStartDate}&end_date=${weekEndDate}`);
+      const response = await fetch(`/api/dashboard.php?action=total_revenue&start_date=${weekStartDate}&end_date=${weekEndDate}`);
       if (!response.ok) throw new Error('Failed to fetch total revenue');
       const data = await response.json();
       totalRevenue = data.total_revenue;

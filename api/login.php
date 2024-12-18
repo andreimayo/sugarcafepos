@@ -3,10 +3,10 @@
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-// Enable CORS
+// CORS headers are now handled by .htaccess, but we'll keep these as a fallback
 header('Access-Control-Allow-Origin: http://localhost:5173');
-header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
 header('Access-Control-Allow-Credentials: true');
 header('Content-Type: application/json; charset=utf-8');
 
@@ -16,12 +16,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
+// Database configuration
+$db_config = [
+    'host' => 'localhost',
+    'dbname' => 'sugarcafe_pos',
+    'user' => 'root',
+    'pass' => ''
+];
+
 // Database connection
 try {
     $pdo = new PDO(
-        "mysql:host=localhost;dbname=sugarcafe_pos;charset=utf8mb4",
-        "root",
-        "",
+        "mysql:host={$db_config['host']};dbname={$db_config['dbname']};charset=utf8mb4",
+        $db_config['user'],
+        $db_config['pass'],
         [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
     );
 } catch(PDOException $e) {
@@ -35,7 +43,7 @@ try {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $rawData = file_get_contents('php://input');
-        error_log("Received raw data: " . $rawData); // Debug log
+        error_log("Received raw data: " . $rawData);
         
         $data = json_decode($rawData, true);
         
@@ -54,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ? AND role = ?");
             $stmt->execute([$data['username'], $data['role']]);
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            $user = $stmt->fetch();
 
             if ($user && password_verify($data['password'], $user['password'])) {
                 echo json_encode([
@@ -77,35 +85,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit();
         }
         
-        if ($data['action'] === 'change_password') {
-            if (!isset($data['userId']) || !isset($data['currentPassword']) || !isset($data['newPassword'])) {
-                throw new Exception('Missing password change fields');
-            }
-
-            $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
-            $stmt->execute([$data['userId']]);
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            if (!$user || !password_verify($data['currentPassword'], $user['password'])) {
-                http_response_code(401);
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Current password is incorrect'
-                ]);
-                exit();
-            }
-
-            $hashedPassword = password_hash($data['newPassword'], PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
-            $stmt->execute([$hashedPassword, $data['userId']]);
-
-            echo json_encode([
-                'success' => true,
-                'message' => 'Password updated successfully'
-            ]);
-            exit();
-        }
-
         throw new Exception('Invalid action');
 
     } catch (Exception $e) {

@@ -8,8 +8,8 @@
     let newPassword = '';
     let confirmPassword = '';
 
-    // Update API URL to use the correct endpoint
-    const apiUrl = 'http://localhost/sugarcafepos/api/auth/login';
+   
+    const apiUrl = 'http://localhost/sugarcafepos/api/login';
 
     async function login(event: { preventDefault: () => void; }) {
         event.preventDefault();
