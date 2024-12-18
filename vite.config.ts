@@ -19,7 +19,7 @@ export default defineConfig({
 		proxy: {
 			// Proxy API requests to avoid CORS issues
 			'/api': {
-				target: 'http://localhost',
+				target: 'http://localhost:sugarcafepos',
 				changeOrigin: true
 			}
 		}
