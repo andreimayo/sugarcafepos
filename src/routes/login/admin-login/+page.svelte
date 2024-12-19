@@ -9,7 +9,7 @@
     let confirmPassword = '';
 
    
-    const apiUrl = 'http://localhost/sugarcafepos/api/login';
+    const apiUrl = 'http://localhost/sugarcafepos/api/login.php';
 
     async function login(event: { preventDefault: () => void; }) {
         event.preventDefault();
