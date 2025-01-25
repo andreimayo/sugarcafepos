@@ -37,40 +37,73 @@
   }
 
   async function fetchSalesData() {
-    try {
-      const response = await fetch(`/api/dashboard,php?action=sales_data&start_date=${weekStartDate}&end_date=${weekEndDate}`);
-      if (!response.ok) throw new Error('Failed to fetch sales data');
-      salesReports = await response.json();
-    } catch (error) {
-      console.error('Error fetching sales data:', error);
-      alert('Failed to fetch sales data. Please try again.');
-    }
+  try {
+    const response = await fetch('/api/admin_dashboard_api.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'sales_data',
+        start_date: weekStartDate,
+        end_date: weekEndDate
+      })
+    });
+    if (!response.ok) throw new Error('Failed to fetch sales data');
+    const result = await response.json();
+    salesReports = result.data;
+  } catch (error) {
+    console.error('Error fetching sales data:', error);
+    alert('Failed to fetch sales data. Please try again.');
   }
+}
 
-  async function fetchTopProducts() {
-    try {
-      const response = await fetch('/api/dashboard.php?action=top_products&limit=5');
-      if (!response.ok) throw new Error('Failed to fetch top products');
-      topProducts = await response.json();
-    } catch (error) {
-      console.error('Error fetching top products:', error);
-      alert('Failed to fetch top products. Please try again.');
-    }
+async function fetchTopProducts() {
+  try {
+    const response = await fetch('/api/admin_dashboard_api.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'top_products',
+        limit: 5
+      })
+    });
+    if (!response.ok) throw new Error('Failed to fetch top products');
+    const result = await response.json();
+    topProducts = result.data;
+  } catch (error) {
+    console.error('Error fetching top products:', error);
+    alert('Failed to fetch top products. Please try again.');
   }
+}
 
-  async function fetchTotalRevenue() {
-    try {
-      const response = await fetch(`/api/dashboard.php?action=total_revenue&start_date=${weekStartDate}&end_date=${weekEndDate}`);
-      if (!response.ok) throw new Error('Failed to fetch total revenue');
-      const data = await response.json();
-      totalRevenue = data.total_revenue;
-    } catch (error) {
-      console.error('Error fetching total revenue:', error);
-      alert('Failed to fetch total revenue. Please try again.');
-    }
+async function fetchTotalRevenue() {
+  try {
+    const response = await fetch('/api/admin_dashboard_api.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'total_revenue',
+        start_date: weekStartDate,
+        end_date: weekEndDate
+      })
+    });
+    if (!response.ok) throw new Error('Failed to fetch total revenue');
+    const result = await response.json();
+    totalRevenue = result.data.total_revenue;
+  } catch (error) {
+    console.error('Error fetching total revenue:', error);
+    alert('Failed to fetch total revenue. Please try again.');
   }
+}
+
 
   function logout() {
+    localStorage.removeItem('user');
     window.location.href = '/login';
   }
 
@@ -428,4 +461,3 @@
     </div>
   </section>
 </main>
-

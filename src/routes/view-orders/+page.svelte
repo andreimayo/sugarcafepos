@@ -25,15 +25,15 @@
 
   async function fetchOrders() {
     try {
-      const response = await fetch('/api/view_orders.php?action=get_orders');
+      const response = await fetch('/api/view_orders_api.php?action=get_orders');
       if (!response.ok) throw new Error('Failed to fetch orders');
       const data = await response.json();
-      orders = data.map((order: { id: any; cashier_name: any; total_amount: any; }) => ({
+      orders = data.map((order: any) => ({
         id: order.id,
         name: order.cashier_name,
-        size: 'N/A',
+        size: order.size || 'N/A',
         sizePrice: order.total_amount,
-        quantity: 1,
+        quantity: order.quantity || 1,
         totalPrice: order.total_amount
       }));
     } catch (error) {
@@ -52,14 +52,32 @@
   }
 
   async function deleteOrder(order: OrderItem) {
-    // In a real application, you would send a DELETE request to the server
-    // For now, we'll just remove it from the local array
-    orders = orders.filter(o => o.id !== order.id);
+    if (confirm(`Are you sure you want to delete order for ${order.name}?`)) {
+      try {
+        const response = await fetch('/sugarcafeapi/view_orders_api.php', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ id: order.id })
+        });
+        if (!response.ok) throw new Error('Failed to delete order');
+        const result = await response.json();
+        if (result.success) {
+          orders = orders.filter(o => o.id !== order.id);
+        } else {
+          throw new Error(result.message || 'Failed to delete order');
+        }
+      } catch (error) {
+        console.error('Error deleting order:', error);
+        alert('Failed to delete order. Please try again.');
+      }
+    }
   }
 
   async function completeOrder(order: OrderItem) {
     try {
-      const response = await fetch('/api/view_orders.php', {
+      const response = await fetch('/sugarcafeapi/view_orders_api.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -97,7 +115,7 @@
 
     try {
       const orderIds = salesReport.flatMap(report => report.orders.map(order => order.id));
-      const response = await fetch('/api/view_orders.php', {
+      const response = await fetch('/api/view_orders_api.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -325,7 +343,7 @@
       <div class="card">
         <p>Total Sales Today: ₱{calculateTotalSales(salesReport.flatMap(report => report.orders)).toFixed(2)}</p>
         <button
-          class="w-full button-primary py-2 rounded-lg "
+          class="w-fullbutton-primary py-2 rounded-lg mt-4"
           on:click={submitSalesReport}>
           Submit Sales Report
         </button>
@@ -333,3 +351,4 @@
     </section>
   </section>
 </main>
+

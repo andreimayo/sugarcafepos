@@ -125,29 +125,44 @@
     change = customerPayment >= totalCost ? customerPayment - totalCost : 0;
   }
 
-  async function placeOrder(orderDetails: any) {
-  try {
-    const response = await fetch('/api/manage-orders.php', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(orderDetails),
-    });
+  async function placeOrder() {
+    const orderDetails = {
+      action: 'place_order',
+      orders,
+      totalCost,
+      customerPayment,
+      change
+    };
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    try {
+      const response = await fetch('/api/manage_orders_api.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderDetails),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        alert(`Order placed successfully! Order ID: ${data.orderId}`);
+        // Clear the current order
+        orders = [];
+        totalCost = 0;
+        customerPayment = 0;
+        change = 0;
+      } else {
+        throw new Error(data.message);
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to place order';
+      alert('Error placing order: ' + errorMessage);
     }
-
-    const data = await response.json();
-    console.log('Order placed successfully:', data);
-    alert('Order placed successfully!');
-
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Failed to place order';
-    alert('Error placing order: ' + errorMessage);
   }
-}
 
 </script>
 <style>

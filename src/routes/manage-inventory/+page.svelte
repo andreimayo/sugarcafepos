@@ -21,7 +21,7 @@
 
   async function fetchInventory() {
     try {
-      const response = await fetch('/api/manage-inventory.php');
+      const response = await fetch('/sugarcafeapi/manage_inventory_api.php');
       if (!response.ok) throw new Error('Failed to fetch inventory');
       inventory = await response.json();
     } catch (error) {
@@ -33,14 +33,19 @@
   async function addItem() {
     if (currentItem.name && currentItem.stock_quantity > 0 && currentItem.price > 0) {
       try {
-        const response = await fetch('/api/manage-inventory.php', {
+        const response = await fetch('/sugarcafeapi/manage_inventory_api.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(currentItem)
         });
         if (!response.ok) throw new Error('Failed to add item');
-        await fetchInventory();
-        resetForm();
+        const result = await response.json();
+        if (result.success) {
+          await fetchInventory();
+          resetForm();
+        } else {
+          throw new Error(result.message);
+        }
       } catch (error) {
         console.error('Error adding item:', error);
         alert('Failed to add item. Please try again.');
@@ -57,14 +62,19 @@
 
   async function saveItem() {
     try {
-      const response = await fetch(`/api/manage-inventory.php`, {
+      const response = await fetch(`/api/manage_inventory_api.php`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(currentItem)
       });
       if (!response.ok) throw new Error('Failed to update item');
-      await fetchInventory();
-      resetForm();
+      const result = await response.json();
+      if (result.success) {
+        await fetchInventory();
+        resetForm();
+      } else {
+        throw new Error(result.message);
+      }
     } catch (error) {
       console.error('Error updating item:', error);
       alert('Failed to update item. Please try again.');
@@ -74,13 +84,18 @@
   async function deleteItem(item: InventoryItem) {
     if (confirm(`Are you sure you want to delete ${item.name}?`)) {
       try {
-        const response = await fetch(`/api/manage-inventory.php`, {
+        const response = await fetch(`/api/manage_inventory_api.php`, {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id: item.id })
         });
         if (!response.ok) throw new Error('Failed to delete item');
-        await fetchInventory();
+        const result = await response.json();
+        if (result.success) {
+          await fetchInventory();
+        } else {
+          throw new Error(result.message);
+        }
       } catch (error) {
         console.error('Error deleting item:', error);
         alert('Failed to delete item. Please try again.');
